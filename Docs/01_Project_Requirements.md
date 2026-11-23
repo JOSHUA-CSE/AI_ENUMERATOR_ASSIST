@@ -4,22 +4,28 @@
 
 **Project Name:** AI-Enumerator Assistant
 
-AI-Enumerator Assistant is a **mobile application** designed to help three levels of census field staff plan, assign, perform, and monitor census fieldwork:
+AI-Enumerator Assistant is a **mobile application** (built with React Native + Expo + TypeScript) designed to help three levels of census field staff plan, assign, perform, and monitor census fieldwork:
 
 * Deputy Tahsildar
 * Supervisor
 * Enumerator
 
-The application is not intended to replace the official census system. Its purpose is to reduce manual work, improve field coordination, reduce missed households, and make field progress easier to monitor.
+The application is not intended to replace the official census system. Its purpose is to reduce manual work, improve field coordination, support satellite-assisted geographic planning, reduce missed households, and make field progress easier to monitor.
 
 The core workflow is:
 
 ```text
 Village / Ward
       ↓
+Satellite Imagery + Boundary
+      ↓
+Building Detection / Estimation
+      ↓
+Estimated Building Count
+      ↓
      Layout
       ↓
-Divide into Blocks
+Divide into Blocks (HLBs)
       ↓
 Each Block ≈ 250 Houses / Buildings
       ↓
@@ -28,6 +34,8 @@ Supervisor
 Number of Enumerators = Number of Blocks
       ↓
 One Enumerator → One Block
+      ↓
+Field Verification & Household Records
 ```
 
 ---
@@ -37,8 +45,11 @@ One Enumerator → One Block
 Census field staff need to:
 
 * Select a village/ward for fieldwork
+* View the administrative boundary over high-resolution satellite imagery
+* Run/load satellite-assisted building detection or estimation to identify visible structures and spatial clusters
+* View estimated building counts and density distributions
 * Create a layout for the selected village/ward
-* Divide the layout into blocks
+* Divide the layout into blocks (HLBs)
 * Ensure each block contains approximately 250 houses/buildings
 * Assign the complete layout to the Supervisor responsible for that area
 * Assign one Enumerator to each block
@@ -59,28 +70,62 @@ The application combines these activities into one role-based mobile application
 
 ### Primary responsibility
 
-**Select a village/ward, create its layout, divide it into blocks, and assign the layout to the responsible Supervisor.**
+**Select a village/ward, review its satellite imagery and estimated buildings, create its layout, divide it into blocks, and assign the layout to the responsible Supervisor.**
+
+The Deputy Tahsildar workflow:
+
+```text
+Select Village/Ward
+        ↓
+Load Administrative Boundary
+        ↓
+View Satellite Imagery
+        ↓
+Run Building Detection / Estimation
+        ↓
+Estimate Visible Buildings
+        ↓
+Store Building Locations/Footprints
+        ↓
+Review Result (Density / Clusters)
+        ↓
+Use Result for GIS Planning
+```
 
 The Deputy Tahsildar can:
 
 * Securely login
 * Select a village/ward
-* View the village/ward on a map
-* View buildings/houses
+* View the village/ward boundary on a satellite map
+* Run/load satellite-assisted building detection and estimation
+* View estimated building counts and density heatmaps
+* Inspect building clusters with counts at medium/closer zoom
+* View individual detected building footprints/markers at high zoom
 * Set the target block size
-* Generate blocks automatically
+* Generate blocks automatically using building distribution
 * Ensure each block contains approximately **250 houses/buildings**
 * Review generated blocks
 * Edit block boundaries
 * Split a block
 * Merge blocks
-* Add/remove houses from a block when required
+* Add/remove houses/buildings from a block when required
 * View house/building count in each block
 * Approve the final block division
 * Identify the Supervisor responsible for the selected village/ward
 * Assign the complete layout to that Supervisor
 * View the required number of Enumerators
 * View overall progress
+
+> **Important Terminology & Scope Note:**
+> Satellite imagery and automated detection identify visible structures and building footprints. These provide a **Satellite-derived Building Estimate** for GIS layout planning.
+> Satellite detection **does not** produce an exact census household count because:
+> - One physical building may contain multiple households (e.g., multi-story or joint family residences)
+> - Certain structures (sheds, outbuildings, commercial units) may not represent households
+> - Buildings can be missed due to tree canopy, cloud cover, or roof reflectance
+> - Shadows or ground textures can create false detections
+> - Imagery resolution and capture dates affect detection accuracy
+>
+> Therefore, Phase 3 outputs are strictly labeled **"Estimated Buildings"** or **"Detected Buildings"**. Exact household verification occurs during Enumerator fieldwork.
 
 ### Important Layout Rule
 
@@ -90,7 +135,7 @@ For example:
 
 ```text
 Village A
-Total Houses/Buildings = 1,000
+Estimated Buildings = 1,000
 
         ↓
 
@@ -249,10 +294,10 @@ Deputy Tahsildar
 ### Input
 
 * Village/ward
-* Administrative boundary
-* Building/house locations
-* Road information
-* Target block size
+* Administrative boundary polygon (SRID 4326)
+* Satellite imagery & detected building footprints/centroids
+* Road network information
+* Target block size (default: 250)
 
 ### Default Target
 
@@ -265,25 +310,27 @@ The target should be configurable by an authorized user, but the default project
 ```text
 Select Village/Ward
         ↓
-Load Houses/Buildings
+Load Administrative Boundary
         ↓
-Load Roads
+View Satellite Imagery
         ↓
-Identify Geographic Boundary
+Run/Load Building Detection & Estimation
+        ↓
+Store Detected Building Footprints / Locations in PostGIS
+        ↓
+Load Road Network
         ↓
 AI/GIS Block Generation
         ↓
-Create Blocks
+Create Candidate Blocks
         ↓
 Target ≈ 250 Houses/Buildings per Block
         ↓
 Validate Blocks
         ↓
-Deputy Tahsildar Review
+Deputy Tahsildar Review & Adjustment
         ↓
-Edit if Required
-        ↓
-Approve
+Approve Layout
 ```
 
 ### Output
@@ -292,8 +339,8 @@ The system should generate:
 
 * Number of blocks
 * Block boundaries
-* Houses/buildings belonging to each block
-* House/building count per block
+* Detected buildings / structures belonging to each block
+* Estimated building count per block
 * Block ID
 * Layout ID
 * Validation warnings
@@ -303,7 +350,7 @@ Example:
 ```text
 LAYOUT: Village A
 
-Total Houses/Buildings: 1,240
+Estimated Buildings: 1,240
 
 Block 01 → 248
 Block 02 → 252

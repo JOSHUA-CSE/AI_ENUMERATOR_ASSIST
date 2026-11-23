@@ -1,0 +1,63 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Achipatti (Provisional Boundary)",
+    "official_name": "Achipatti",
+    "tamil_name": "\u0b86\u0b9a\u0bcd\u0b9a\u0bbf\u0baa\u0b9f\u0bcd\u0b9f\u0bbf",
+    "census_code": "644592",
+    "lgd_code": "644592",
+    "firka": "Pollachi North",
+    "taluk": "Pollachi",
+    "district": "Coimbatore",
+    "boundary_status": "PROVISIONAL",
+    "source": "Provisional territorial delineation based on Census 2011 revenue village coordinates and Voronoi settlement partitioning within Pollachi Taluk",
+    "licence": "ODbL 1.0 / CC-BY-4.0",
+    "is_official": false,
+    "is_provisional": true,
+    "verification_date": "2026-11-12",
+    "source_url": "https://coimbatore.nic.in/revenue-administration/"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Achipatti",
+        "boundary_status": "PROVISIONAL",
+        "census_code": "644592"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                77.063,
+                10.680299999999992
+              ],
+              [
+                77.063,
+                10.667
+              ],
+              [
+                76.997,
+                10.667
+              ],
+              [
+                76.997,
+                10.700666666666665
+              ],
+              [
+                77.01788461538462,
+                10.698346153846153
+              ],
+              [
+                77.063,
+                10.680299999999992
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

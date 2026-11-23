@@ -1,0 +1,63 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Kolarpatti (Provisional Boundary)",
+    "official_name": "Kolarpatti",
+    "tamil_name": "\u0b95\u0bcb\u0bb2\u0bbe\u0bb0\u0bcd\u0baa\u0b9f\u0bcd\u0b9f\u0bbf",
+    "census_code": "644556",
+    "lgd_code": "644556",
+    "firka": "Pollachi South",
+    "taluk": "Pollachi",
+    "district": "Coimbatore",
+    "boundary_status": "PROVISIONAL",
+    "source": "Provisional territorial delineation based on Census 2011 revenue village coordinates and Voronoi settlement partitioning within Pollachi Taluk",
+    "licence": "ODbL 1.0 / CC-BY-4.0",
+    "is_official": false,
+    "is_provisional": true,
+    "verification_date": "2026-11-12",
+    "source_url": "https://coimbatore.nic.in/revenue-administration/"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kolarpatti",
+        "boundary_status": "PROVISIONAL",
+        "census_code": "644556"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                77.04663103448276,
+                10.63322413793104
+              ],
+              [
+                77.083,
+                10.66569642857144
+              ],
+              [
+                77.083,
+                10.637999999999986
+              ],
+              [
+                77.04199999999999,
+                10.597
+              ],
+              [
+                77.02006666666666,
+                10.597
+              ],
+              [
+                77.04663103448276,
+                10.63322413793104
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

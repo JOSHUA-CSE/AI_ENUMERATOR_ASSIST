@@ -1,0 +1,59 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Unjavelampatti (Provisional Boundary)",
+    "official_name": "Unjavelampatti",
+    "tamil_name": "\u0b8a\u0b9e\u0bcd\u0b9a\u0bb5\u0bc7\u0bb2\u0bbe\u0bae\u0bcd\u0baa\u0b9f\u0bcd\u0b9f\u0bbf",
+    "census_code": "644541",
+    "lgd_code": "644541",
+    "firka": "Pollachi South",
+    "taluk": "Pollachi",
+    "district": "Coimbatore",
+    "boundary_status": "PROVISIONAL",
+    "source": "Provisional territorial delineation based on Census 2011 revenue village coordinates and Voronoi settlement partitioning within Pollachi Taluk",
+    "licence": "ODbL 1.0 / CC-BY-4.0",
+    "is_official": false,
+    "is_provisional": true,
+    "verification_date": "2026-11-12",
+    "source_url": "https://coimbatore.nic.in/revenue-administration/"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Unjavelampatti",
+        "boundary_status": "PROVISIONAL",
+        "census_code": "644541"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                77.0175,
+                10.65749999999999
+              ],
+              [
+                77.04663103448276,
+                10.63322413793104
+              ],
+              [
+                77.02006666666666,
+                10.597
+              ],
+              [
+                77.01101785714286,
+                10.597
+              ],
+              [
+                77.0175,
+                10.65749999999999
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

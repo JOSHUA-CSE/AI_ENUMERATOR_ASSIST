@@ -1,0 +1,63 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Zamin Muthur (Provisional Boundary)",
+    "official_name": "Zamin Muthur",
+    "tamil_name": "\u0b9c\u0bae\u0bc0\u0ba9\u0bcd \u0bae\u0bc1\u0ba4\u0bcd\u0ba4\u0bc2\u0bb0\u0bcd",
+    "census_code": "644542",
+    "lgd_code": "644542",
+    "firka": "Pollachi South",
+    "taluk": "Pollachi",
+    "district": "Coimbatore",
+    "boundary_status": "PROVISIONAL",
+    "source": "Provisional territorial delineation based on Census 2011 revenue village coordinates and Voronoi settlement partitioning within Pollachi Taluk",
+    "licence": "ODbL 1.0 / CC-BY-4.0",
+    "is_official": false,
+    "is_provisional": true,
+    "verification_date": "2026-11-12",
+    "source_url": "https://coimbatore.nic.in/revenue-administration/"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zamin Muthur",
+        "boundary_status": "PROVISIONAL",
+        "census_code": "644542"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                77.04663103448276,
+                10.63322413793104
+              ],
+              [
+                77.0175,
+                10.65749999999999
+              ],
+              [
+                77.01672727272727,
+                10.666
+              ],
+              [
+                77.083,
+                10.666
+              ],
+              [
+                77.083,
+                10.66569642857144
+              ],
+              [
+                77.04663103448276,
+                10.63322413793104
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

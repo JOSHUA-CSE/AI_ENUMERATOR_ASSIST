@@ -1,0 +1,208 @@
+{
+  "description": "Authoritative Census Fieldwork Progress Test Vectors for Phase 6",
+  "version": "1.0",
+  "test_cases": [
+    {
+      "id": "TC_01_TWO_CENSUS_HOUSES_ONE_RESOLVED",
+      "description": "Building with two census houses, only one resolved",
+      "buildings": [
+        {
+          "id": "bld-01",
+          "listing_closed": true,
+          "field_status": "CONFIRMED",
+          "census_houses": [
+            { "id": "ch-01-1", "listing_state": "LISTED" },
+            { "id": "ch-01-2", "listing_state": "NOT_VISITED" }
+          ]
+        }
+      ],
+      "expected": {
+        "total_eligible_buildings": 1,
+        "completed_buildings": 0,
+        "pending_buildings": 1,
+        "resolved_census_houses": 1,
+        "locked_census_houses": 0,
+        "unresolved_census_houses": 1,
+        "completion_percentage": 0.0
+      }
+    },
+    {
+      "id": "TC_02_VACANT_NON_RESIDENTIAL",
+      "description": "Vacant non-residential / shop classification",
+      "buildings": [
+        {
+          "id": "bld-02",
+          "listing_closed": true,
+          "field_status": "CONFIRMED",
+          "census_houses": [
+            { "id": "ch-02-1", "listing_state": "VACANT" },
+            { "id": "ch-02-2", "listing_state": "NON_RESIDENTIAL" }
+          ]
+        }
+      ],
+      "expected": {
+        "total_eligible_buildings": 1,
+        "completed_buildings": 1,
+        "pending_buildings": 0,
+        "resolved_census_houses": 2,
+        "locked_census_houses": 0,
+        "unresolved_census_houses": 0,
+        "completion_percentage": 100.0
+      }
+    },
+    {
+      "id": "TC_03_LOCKED_CENSUS_HOUSE",
+      "description": "Locked census house pending revisit",
+      "buildings": [
+        {
+          "id": "bld-03",
+          "listing_closed": true,
+          "field_status": "CONFIRMED",
+          "census_houses": [
+            { "id": "ch-03-1", "listing_state": "LISTED" },
+            { "id": "ch-03-2", "listing_state": "LOCKED" }
+          ]
+        }
+      ],
+      "expected": {
+        "total_eligible_buildings": 1,
+        "completed_buildings": 0,
+        "pending_buildings": 1,
+        "resolved_census_houses": 1,
+        "locked_census_houses": 1,
+        "unresolved_census_houses": 0,
+        "completion_percentage": 0.0
+      }
+    },
+    {
+      "id": "TC_04_LISTING_CLOSED_VS_NOT_CLOSED",
+      "description": "Listing closed versus listing not closed",
+      "buildings": [
+        {
+          "id": "bld-04-A",
+          "listing_closed": true,
+          "field_status": "CONFIRMED",
+          "census_houses": [
+            { "id": "ch-04-A1", "listing_state": "LISTED" }
+          ]
+        },
+        {
+          "id": "bld-04-B",
+          "listing_closed": false,
+          "field_status": "CONFIRMED",
+          "census_houses": [
+            { "id": "ch-04-B1", "listing_state": "LISTED" }
+          ]
+        }
+      ],
+      "expected": {
+        "total_eligible_buildings": 2,
+        "completed_buildings": 1,
+        "pending_buildings": 1,
+        "resolved_census_houses": 2,
+        "locked_census_houses": 0,
+        "unresolved_census_houses": 0,
+        "completion_percentage": 50.0
+      }
+    },
+    {
+      "id": "TC_05_FALSE_DETECTION_EXCLUDED",
+      "description": "False-detection building excluded from denominators",
+      "buildings": [
+        {
+          "id": "bld-05-A",
+          "listing_closed": true,
+          "field_status": "CONFIRMED",
+          "census_houses": [
+            { "id": "ch-05-A1", "listing_state": "LISTED" }
+          ]
+        },
+        {
+          "id": "bld-05-B",
+          "listing_closed": false,
+          "field_status": "FALSE_DETECTION",
+          "census_houses": []
+        }
+      ],
+      "expected": {
+        "total_eligible_buildings": 1,
+        "completed_buildings": 1,
+        "pending_buildings": 0,
+        "resolved_census_houses": 1,
+        "locked_census_houses": 0,
+        "unresolved_census_houses": 0,
+        "completion_percentage": 100.0
+      }
+    },
+    {
+      "id": "TC_06_EMPTY_BUILDING_NO_CENSUS_HOUSES",
+      "description": "Building with no census houses",
+      "buildings": [
+        {
+          "id": "bld-06",
+          "listing_closed": true,
+          "field_status": "CONFIRMED",
+          "census_houses": []
+        }
+      ],
+      "expected": {
+        "total_eligible_buildings": 1,
+        "completed_buildings": 0,
+        "pending_buildings": 1,
+        "resolved_census_houses": 0,
+        "locked_census_houses": 0,
+        "unresolved_census_houses": 0,
+        "completion_percentage": 0.0
+      }
+    },
+    {
+      "id": "TC_07_MULTIPLE_RESOLVED_AND_UNRESOLVED",
+      "description": "Building with multiple resolved and unresolved census houses",
+      "buildings": [
+        {
+          "id": "bld-07-A",
+          "listing_closed": true,
+          "field_status": "CONFIRMED",
+          "census_houses": [
+            { "id": "ch-07-A1", "listing_state": "LISTED" },
+            { "id": "ch-07-A2", "listing_state": "VACANT" }
+          ]
+        },
+        {
+          "id": "bld-07-B",
+          "listing_closed": true,
+          "field_status": "CONFIRMED",
+          "census_houses": [
+            { "id": "ch-07-B1", "listing_state": "LISTED" },
+            { "id": "ch-07-B2", "listing_state": "NOT_VISITED" }
+          ]
+        },
+        {
+          "id": "bld-07-C",
+          "listing_closed": false,
+          "field_status": "CONFIRMED",
+          "census_houses": [
+            { "id": "ch-07-C1", "listing_state": "LOCKED" },
+            { "id": "ch-07-C2", "listing_state": "NON_RESIDENTIAL" }
+          ]
+        },
+        {
+          "id": "bld-07-D",
+          "listing_closed": true,
+          "field_status": "FALSE_DETECTION",
+          "census_houses": []
+        }
+      ],
+      "expected": {
+        "total_eligible_buildings": 3,
+        "completed_buildings": 1,
+        "pending_buildings": 2,
+        "resolved_census_houses": 4,
+        "locked_census_houses": 1,
+        "unresolved_census_houses": 1,
+        "completion_percentage": 33.33
+      }
+    }
+  ]
+}
+

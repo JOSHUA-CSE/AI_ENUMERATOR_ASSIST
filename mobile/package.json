@@ -1,0 +1,59 @@
+{
+  "name": "mobile",
+  "version": "0.0.1",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "lint": "eslint .",
+    "test": "jest",
+    "web": "vite",
+    "start": "expo start",
+    "start:tunnel": "expo start --tunnel"
+  },
+  "dependencies": {
+    "@react-navigation/native": "^7.3.18",
+    "@react-navigation/native-stack": "^7.18.10",
+    "@testing-library/react-native": "^14.0.1",
+    "babel-preset-expo": "~58.0.0",
+    "expo": "^58.0.0",
+    "expo-constants": "~58.0.16",
+    "expo-location": "~58.0.22",
+    "expo-secure-store": "~58.0.3",
+    "expo-sqlite": "~58.0.17",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-maps": "1.29.11",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1",
+    "react-native-webview": "14.0.1",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@expo/ngrok": "^4.1.3",
+    "@react-native/eslint-config": "0.87.0",
+    "@react-native/typescript-config": "0.87.0",
+    "@types/jest": "30.0.0",
+    "@types/react": "~19.3.0",
+    "@types/react-dom": "~19.3.0",
+    "@types/react-test-renderer": "^19.1.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^8.19.0",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.14",
+    "localtunnel": "^2.0.2",
+    "prettier": "2.8.8",
+    "react-dom": "19.3.0",
+    "react-native-web": "^0.21.4",
+    "react-test-renderer": "19.2.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.2.2"
+  },
+  "engines": {
+    "node": ">= 22.11.0"
+  }
+}

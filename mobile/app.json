@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "AI-Enumerator Assistant",
+    "slug": "ai-enumerator-assistant",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-location"
+    ]
+  }
+}

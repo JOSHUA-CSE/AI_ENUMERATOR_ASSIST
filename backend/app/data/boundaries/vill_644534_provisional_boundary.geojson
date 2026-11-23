@@ -1,0 +1,67 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Kittasoorampalayam (Provisional Boundary)",
+    "official_name": "Kittasoorampalayam",
+    "tamil_name": "\u0b95\u0bbf\u0b9f\u0bcd\u0b9f\u0b9a\u0bc2\u0bb0\u0bae\u0bcd\u0baa\u0bbe\u0bb3\u0bc8\u0baf\u0bae\u0bcd",
+    "census_code": "644534",
+    "lgd_code": "644534",
+    "firka": "Pollachi North",
+    "taluk": "Pollachi",
+    "district": "Coimbatore",
+    "boundary_status": "PROVISIONAL",
+    "source": "Provisional territorial delineation based on Census 2011 revenue village coordinates and Voronoi settlement partitioning within Pollachi Taluk",
+    "licence": "ODbL 1.0 / CC-BY-4.0",
+    "is_official": false,
+    "is_provisional": true,
+    "verification_date": "2026-11-12",
+    "source_url": "https://coimbatore.nic.in/revenue-administration/"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kittasoorampalayam",
+        "boundary_status": "PROVISIONAL",
+        "census_code": "644534"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                77.01244285714284,
+                10.74587142857145
+              ],
+              [
+                77.02427777777778,
+                10.72072222222222
+              ],
+              [
+                77.01788461538462,
+                10.698346153846153
+              ],
+              [
+                76.997,
+                10.700666666666665
+              ],
+              [
+                76.997,
+                10.753
+              ],
+              [
+                77.00637037037038,
+                10.753
+              ],
+              [
+                77.01244285714284,
+                10.74587142857145
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

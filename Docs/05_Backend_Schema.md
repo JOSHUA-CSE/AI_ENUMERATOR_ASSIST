@@ -97,30 +97,45 @@ Administrative Area
 
 # 4. Houses / Buildings
 
-Houses/buildings are master geographical objects.
+Houses/buildings are master geographical planning objects representing physical structures identified via satellite imagery, GIS imports, or manual field entry.
 
-A house/building should not directly store a permanent fieldwork status because fieldwork status can depend on the assigned HLB/Enumerator.
+> **Crucial Architecture Rule: Building vs. Household Record**
+> - **Building / Structure (`houses` table)**: Physical geographic object with coordinates/footprint used for GIS planning, density estimation, and HLB generation.
+> - **Household Record (`household_records` table)**: Socio-demographic census data for individual families/households residing inside a building, captured during on-the-ground Enumerator fieldwork.
+> - Satellite-detected buildings are strictly treated as **geographic planning entities**, never as verified household records.
 
 ### Table: `houses`
 
-| Column             | Type                  | Notes                       |
-| ------------------ | --------------------- | --------------------------- |
-| id                 | UUID                  | Primary key                 |
-| area_id            | UUID                  | Administrative area         |
-| building_reference | VARCHAR               | External/internal reference |
-| house_number       | VARCHAR               | Optional house number       |
-| latitude           | DECIMAL               | Latitude                    |
-| longitude          | DECIMAL               | Longitude                   |
-| location           | GEOMETRY(POINT, 4326) | PostGIS location            |
-| created_at         | TIMESTAMP             | Creation time               |
-| updated_at         | TIMESTAMP             | Last update                 |
+| Column               | Type                                 | Notes                                                              |
+| -------------------- | ------------------------------------ | ------------------------------------------------------------------ |
+| id                   | UUID                                 | Primary key                                                        |
+| area_id              | UUID                                 | Administrative area (Village / Ward)                               |
+| building_reference   | VARCHAR                              | External/internal reference (e.g. `BLD-001`, `H-638401-001`)       |
+| house_number         | VARCHAR                              | Optional door/house number (e.g. `1/1`)                            |
+| latitude             | DECIMAL                              | Centroid Latitude                                                  |
+| longitude            | DECIMAL                              | Centroid Longitude                                                 |
+| location             | GEOMETRY(POINT, 4326)                | PostGIS point location                                             |
+| footprint            | GEOMETRY(POLYGON/MULTIPOLYGON, 4326) | Optional building polygon footprint                                |
+| source_type          | ENUM                                 | `MANUAL`, `SATELLITE_DETECTED`, `GOVERNMENT_IMPORT`, `FIELD_VERIFIED` |
+| detection_confidence | DECIMAL                              | Confidence score (0.0 to 1.0) for ML/satellite detections          |
+| detected_at          | TIMESTAMP                            | Timestamp when building detection was performed                    |
+| imagery_source       | VARCHAR                              | Satellite imagery provider (e.g., `esri_world_imagery`, `sentinel`) |
+| imagery_date         | DATE                                 | Acquisition date of underlying satellite imagery                   |
+| created_at           | TIMESTAMP                            | Creation time                                                      |
+| updated_at           | TIMESTAMP                            | Last update                                                        |
 
 Relationship:
 
 ```text
 Administrative Area
         ↓
-Houses / Buildings
+Houses / Buildings (Satellite Detected / Estimated)
+        ↓
+HLB Assignment
+        ↓
+Field Verification by Enumerator
+        ↓
+Household Records
 ```
 
 ---
@@ -133,21 +148,22 @@ The Deputy Tahsildar selects an administrative area and creates its layout.
 
 ### Table: `layouts`
 
-| Column                 | Type                                 | Notes                                                             |
-| ---------------------- | ------------------------------------ | ----------------------------------------------------------------- |
-| id                     | UUID                                 | Primary key                                                       |
-| area_id                | UUID                                 | Selected Village/Ward                                             |
-| name                   | VARCHAR                              | Layout name                                                       |
-| target_hlb_house_count | INTEGER                              | Default approximately 250                                         |
-| actual_house_count     | INTEGER                              | Calculated                                                        |
-| expected_hlb_count     | INTEGER                              | Calculated                                                        |
-| boundary               | GEOMETRY(POLYGON/MULTIPOLYGON, 4326) | Layout boundary                                                   |
-| status                 | ENUM                                 | `DRAFT`, `GENERATED`, `REVIEW`, `APPROVED`, `ACTIVE`, `COMPLETED` |
-| generated_by           | UUID                                 | Deputy Tahsildar                                                  |
-| approved_by            | UUID                                 | Deputy Tahsildar                                                  |
-| approved_at            | TIMESTAMP                            | Approval time                                                     |
-| created_at             | TIMESTAMP                            | Creation time                                                     |
-| updated_at             | TIMESTAMP                            | Last update                                                       |
+| Column                    | Type                                 | Notes                                                             |
+| ------------------------- | ------------------------------------ | ----------------------------------------------------------------- |
+| id                        | UUID                                 | Primary key                                                       |
+| area_id                   | UUID                                 | Foreign key to `administrative_areas.id` (Selected Village/Ward)  |
+| name                      | VARCHAR                              | Layout name                                                       |
+| target_hlb_building_count | INTEGER                              | Default approximately 250 (configurable)                          |
+| actual_building_count     | INTEGER                              | Count of buildings in this area                                   |
+| expected_hlb_count        | INTEGER                              | Calculated expected block count                                   |
+| boundary                  | GEOMETRY(POLYGON/MULTIPOLYGON, 4326) | Layout boundary (from administrative area)                        |
+| status                    | ENUM                                 | `DRAFT`, `ASSIGNED`, `APPROVED`, `COMPLETED`, `ARCHIVED`          |
+| active_version_id         | UUID                                 | Foreign key to active approved `layout_versions.id`               |
+| created_by                | UUID                                 | Deputy Tahsildar user ID                                          |
+| approved_by               | UUID                                 | Deputy Tahsildar approver ID                                      |
+| approved_at               | TIMESTAMP                            | Approval timestamp                                                |
+| created_at                | TIMESTAMP                            | Creation time                                                     |
+| updated_at                | TIMESTAMP                            | Last update                                                       |
 
 ### Important rule
 
@@ -165,7 +181,7 @@ Generated layouts must be separated from approved layouts.
 
 This is important because the Deputy Tahsildar may:
 
-* Generate blocks
+* Generate candidate blocks
 * Edit boundaries
 * Split blocks
 * Merge blocks
@@ -174,28 +190,33 @@ This is important because the Deputy Tahsildar may:
 
 ### Table: `layout_versions`
 
-| Column         | Type      | Notes                                     |
-| -------------- | --------- | ----------------------------------------- |
-| id             | UUID      | Primary key                               |
-| layout_id      | UUID      | Parent layout                             |
-| version_number | INTEGER   | Version number                            |
-| source         | ENUM      | `AI_GENERATED`, `MANUAL_EDIT`, `APPROVED` |
-| created_by     | UUID      | User who created version                  |
-| snapshot_data  | JSONB     | Version metadata                          |
-| created_at     | TIMESTAMP | Creation time                             |
+| Column                   | Type      | Notes                                                      |
+| ------------------------ | --------- | ---------------------------------------------------------- |
+| id                       | UUID      | Primary key                                                |
+| layout_id                | UUID      | Foreign key to `layouts.id`                                |
+| version_number           | INTEGER   | Incremental version number ($1, 2, \dots$)                 |
+| source                   | ENUM      | `AI_GENERATED`, `MANUAL_EDIT`, `IMPORT`                    |
+| status                   | ENUM      | `CANDIDATE`, `APPROVED`, `SUPERSEDED`, `REJECTED`          |
+| target_buildings_per_hlb | INTEGER   | Deputy's requested building target for this version        |
+| total_buildings          | INTEGER   | Total structures partitioned                               |
+| hlb_count                | INTEGER   | Number of HLBs generated                                   |
+| quality_score            | FLOAT     | Composite validation quality score $Q \in [0.0, 100.0]$    |
+| validation_status        | VARCHAR   | `VALID`, `WARNING`, or `INVALID`                           |
+| validation_summary       | JSON      | Invariant checklist (coverage, balance, duplicates)        |
+| generation_metadata      | JSON      | Algorithm details, clustering timestamps                   |
+| created_by               | UUID      | User who triggered generation                              |
+| created_at               | TIMESTAMP | Creation timestamp                                         |
 
 Relationship:
 
 ```text
 Layout
   |
-  +---- Version 1
+  +---- Version 1 (SUPERSEDED)
   |
-  +---- Version 2
+  +---- Version 2 (SUPERSEDED)
   |
-  +---- Version 3
-  |
-  +---- Approved Version
+  +---- Version 3 (APPROVED / Active)
 ```
 
 The approved version must remain stable for fieldwork.
@@ -204,29 +225,28 @@ The approved version must remain stable for fieldwork.
 
 # 7. Houselisting Blocks
 
-This is the major addition to the previous schema.
-
 A layout is divided into **Houselisting Blocks (HLBs)**.
 
-Each HLB should contain approximately the configured target number of houses/buildings.
+Each HLB should contain approximately the configured target number of houses/buildings ($\approx 250$).
 
 ### Table: `houselisting_blocks`
 
-| Column             | Type                                 | Notes                                                                         |
-| ------------------ | ------------------------------------ | ----------------------------------------------------------------------------- |
-| id                 | UUID                                 | Primary key                                                                   |
-| layout_id          | UUID                                 | Parent layout                                                                 |
-| block_code         | VARCHAR                              | Example: `HLB-001`                                                            |
-| name               | VARCHAR                              | Optional display name                                                         |
-| target_house_count | INTEGER                              | Normally approximately 250                                                    |
-| actual_house_count | INTEGER                              | Calculated                                                                    |
-| boundary           | GEOMETRY(POLYGON/MULTIPOLYGON, 4326) | HLB boundary                                                                  |
-| status             | ENUM                                 | `DRAFT`, `GENERATED`, `REVIEW`, `APPROVED`, `ASSIGNED`, `ACTIVE`, `COMPLETED` |
-| generated_by       | UUID                                 | Deputy Tahsildar                                                              |
-| approved_by        | UUID                                 | Deputy Tahsildar                                                              |
-| approved_at        | TIMESTAMP                            | Approval time                                                                 |
-| created_at         | TIMESTAMP                            | Creation time                                                                 |
-| updated_at         | TIMESTAMP                            | Last update                                                                   |
+| Column                | Type                                 | Notes                                                                         |
+| --------------------- | ------------------------------------ | ----------------------------------------------------------------------------- |
+| id                    | UUID                                 | Primary key                                                                   |
+| layout_id             | UUID                                 | Foreign key to `layouts.id`                                                   |
+| version_id            | UUID                                 | Foreign key to `layout_versions.id`                                           |
+| block_code            | VARCHAR                              | Example: `HLB-001`, `HLB-002`                                                 |
+| name                  | VARCHAR                              | Display name (e.g. `Arasur Village Block 1`)                                  |
+| target_building_count | INTEGER                              | Balanced target size for this block                                           |
+| actual_building_count | INTEGER                              | Actual assigned structures count                                              |
+| boundary              | GEOMETRY(POLYGON/MULTIPOLYGON, 4326) | Morphological synthesized polygon boundary                                    |
+| status                | ENUM                                 | `DRAFT`, `GENERATED`, `APPROVED`, `ASSIGNED`, `ACTIVE`, `COMPLETED`, `ARCHIVED`|
+| quality_score         | FLOAT                                | Individual block quality score                                                |
+| validation_status     | ENUM                                 | `VALID`, `WARNING`, `INVALID`                                                 |
+| validation_details    | JSON                                 | Balance, compactness, and containment details                                 |
+| created_at            | TIMESTAMP                            | Creation time                                                                 |
+| updated_at            | TIMESTAMP                            | Last update                                                                   |
 
 Relationship:
 
