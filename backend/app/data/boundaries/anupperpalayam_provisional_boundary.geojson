@@ -1,0 +1,59 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Anupperpalayam (Provisional Boundary)",
+    "official_name": "Anupperpalayam",
+    "tamil_name": "\u0b85\u0ba9\u0bc1\u0baa\u0bcd\u0baa\u0bb0\u0bcd\u0baa\u0bbe\u0bb3\u0bc8\u0baf\u0bae\u0bcd",
+    "census_code": "644535",
+    "lgd_code": "644535",
+    "firka": "Pollachi North",
+    "taluk": "Pollachi",
+    "district": "Coimbatore",
+    "boundary_status": "PROVISIONAL",
+    "source": "Provisional territorial delineation based on Census 2011 revenue village coordinates and Voronoi settlement partitioning within Pollachi Taluk",
+    "licence": "ODbL 1.0 / CC-BY-4.0",
+    "is_official": false,
+    "is_provisional": true,
+    "verification_date": "2026-11-12",
+    "source_url": "https://coimbatore.nic.in/revenue-administration/"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Anupperpalayam",
+        "boundary_status": "PROVISIONAL",
+        "census_code": "644535"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                77.063,
+                10.682000000000029
+              ],
+              [
+                77.063,
+                10.680299999999992
+              ],
+              [
+                77.01788461538462,
+                10.698346153846153
+              ],
+              [
+                77.02427777777778,
+                10.72072222222222
+              ],
+              [
+                77.063,
+                10.682000000000029
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

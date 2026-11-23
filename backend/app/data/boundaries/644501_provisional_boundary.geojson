@@ -1,0 +1,63 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Chinnampalayam (Provisional Boundary)",
+    "official_name": "Chinnampalayam",
+    "tamil_name": "\u0b9a\u0bbf\u0ba9\u0bcd\u0ba9\u0bae\u0bcd\u0baa\u0bbe\u0bb3\u0bc8\u0baf\u0bae\u0bcd",
+    "census_code": "644501",
+    "lgd_code": "644501",
+    "firka": "Pollachi South",
+    "taluk": "Pollachi",
+    "district": "Coimbatore",
+    "boundary_status": "PROVISIONAL",
+    "source": "Provisional territorial delineation based on Census 2011 revenue village coordinates and Voronoi settlement partitioning within Pollachi Taluk",
+    "licence": "ODbL 1.0 / CC-BY-4.0",
+    "is_official": false,
+    "is_provisional": true,
+    "verification_date": "2026-11-12",
+    "source_url": "https://coimbatore.nic.in/revenue-administration/"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Chinnampalayam",
+        "boundary_status": "PROVISIONAL",
+        "census_code": "644501"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                77.0175,
+                10.65749999999999
+              ],
+              [
+                77.01101785714286,
+                10.597
+              ],
+              [
+                76.984,
+                10.597
+              ],
+              [
+                76.984,
+                10.666
+              ],
+              [
+                77.01672727272727,
+                10.666
+              ],
+              [
+                77.0175,
+                10.65749999999999
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

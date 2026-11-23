@@ -24,6 +24,12 @@ Therefore, the application should prioritize:
 
 The UI should feel like a **government fieldwork application**, not a consumer social-media application.
 
+### Technical Implementation Notes
+* Built with **React Native with Expo** (Expo React Native) and TypeScript.
+* Maps rendered using **react-native-maps** (with light tile overlays and high-contrast boundary polygons).
+* GPS accuracy and boundary status indicators powered by **expo-location**.
+* Local field state and offline questionnaire persistence backed by **expo-sqlite**.
+
 ---
 
 # 2. Core UI/UX Concept
@@ -461,18 +467,80 @@ Search:
 --------------------------------
 
 Village A
-1,240 Houses/Buildings
+Estimated Buildings: 1,240
 
 Village B
-980 Houses/Buildings
+Estimated Buildings: 980
 
 Village C
-1,530 Houses/Buildings
+Estimated Buildings: 1,530
 
 --------------------------------
 ```
 
-Selecting a village opens its map.
+Selecting a village opens its **Administrative Area Map**.
+
+---
+
+# 12.1 Administrative Area Map UI (Deputy Tahsildar)
+
+The administrative-area map is designed for maximum clarity, avoiding visual clutter from hundreds of unmanaged red dots.
+
+### Default View
+* **Base Map**: High-resolution Satellite Imagery (Esri World Imagery default)
+* **Overlay**: Administrative boundary polygon with semi-transparent fill (`#0284C7` fill opacity 0.22) and bright blue outline (`#38BDF8`).
+
+### 4 Zoom-Dependent Stages
+
+```text
+1. Overview (Far Zoom: Zoom < 14):
+   - Village/Ward boundary polygon only
+   - Centered area name badge ("Arasur")
+   - Zero individual marker clutter for a clean area overview
+
+2. House/Building Density (Medium Zoom: Zoom 14–16):
+   - Multi-tier spatial density heatmap (Green → Yellow → Orange → Red)
+   - Shows building concentration clusters inside the boundary
+
+3. Cluster View (Closer Zoom: Zoom 16–18):
+   - Grouped building cluster badges with counts (e.g., 12, 28, 42)
+   - Color-coded by cluster density (Blue <20, Yellow/Green 20–35, Orange/Red 35+)
+   - Tapping a cluster zooms in directly to expand smaller clusters
+
+4. Individual Detected Buildings (High Zoom: Zoom > 18):
+   - Circular blue pins with white house icon (🏠)
+   - Tapping displays detail popup:
+     ┌────────────────────────────┐
+     │ House                   ℹ  │
+     │ ID: H-638401-125           │
+     │ Bld: BLD-125 • No: 1/125   │
+     │ 11.08250, 77.12350         │
+     └────────────────────────────┘
+```
+
+### UI Controls
+* **Top Controls Bar**:
+  - `[ 🔷 Boundary ]` (toggle boundary outline on/off)
+  - `[ 🏠 Buildings ]` (toggle building density/clusters/individual markers)
+  - `[ 🗺️ Layers ]` (toggle between Satellite and Street Map base layers)
+* **Right Floating Tools**:
+  - `[ 🎯 ]` Current Location / Recenter
+  - `[ ＋ ]` Zoom In
+  - `[ − ]` Zoom Out
+  - `[ 🗖 ]` Fit Entire Boundary
+* **Bottom Information Card**:
+  - Title: **Arasur Village** (`VILL-638401`)
+  - 3-Column Metrics:
+    - **Estimated Buildings**: `🏠 250` (or dynamic detected count)
+    - **Area**: `🗺️ 2.46 km²`
+    - **Status**: `[Active]` (Green pill badge)
+
+### Map Legend
+* `[ 🔷 ]` Village Boundary
+* `[ 🟩🟨🟧🟥 ]` Building Density (Low → High)
+* `[ 24 ]` Building Cluster (Number = count)
+* `[ 🏠 ]` Detected Building (High Zoom)
+* `[ 🎯 ]` My Location
 
 ---
 
@@ -486,10 +554,10 @@ Create Layout
 --------------------------------
 
 Village/Ward:
-Village A
+Arasur Village
 
-Total Houses/Buildings:
-1,240
+Estimated Buildings:
+250
 
 Target HLB Size:
 [ 250 ]

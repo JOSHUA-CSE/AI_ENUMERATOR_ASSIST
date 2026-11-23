@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "customConditions": ["react-native"],
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "strict": true,
+    "typeRoots": ["./mobile/node_modules/@types"],
+    "types": ["jest", "node"]
+  },
+  "include": [
+    "mobile/src/**/*",
+    "mobile/App.tsx",
+    "mobile/index.js",
+    "mobile/__tests__/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "mobile/node_modules",
+    "backend"
+  ]
+}

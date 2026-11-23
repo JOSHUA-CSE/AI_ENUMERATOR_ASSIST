@@ -1,0 +1,59 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "A. Nagur (Provisional Boundary)",
+    "official_name": "A. Nagur",
+    "tamil_name": "\u0b8f. \u0ba8\u0bbe\u0b95\u0bc2\u0bb0\u0bcd",
+    "census_code": "644537",
+    "lgd_code": "644537",
+    "firka": "Pollachi North",
+    "taluk": "Pollachi",
+    "district": "Coimbatore",
+    "boundary_status": "PROVISIONAL",
+    "source": "Provisional territorial delineation based on Census 2011 revenue village coordinates and Voronoi settlement partitioning within Pollachi Taluk",
+    "licence": "ODbL 1.0 / CC-BY-4.0",
+    "is_official": false,
+    "is_provisional": true,
+    "verification_date": "2026-11-12",
+    "source_url": "https://coimbatore.nic.in/revenue-administration/"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "A. Nagur",
+        "boundary_status": "PROVISIONAL",
+        "census_code": "644537"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                77.063,
+                10.712166666666656
+              ],
+              [
+                77.063,
+                10.682000000000029
+              ],
+              [
+                77.02427777777778,
+                10.72072222222222
+              ],
+              [
+                77.01244285714284,
+                10.74587142857145
+              ],
+              [
+                77.063,
+                10.712166666666656
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Arasur Village (Provisional Boundary)",
+    "state": "Tamil Nadu",
+    "district": "Coimbatore",
+    "taluk": "Sulur",
+    "lgd_code": "638401",
+    "boundary_status": "PROVISIONAL",
+    "source": "Provisional settlement delineation based on OpenStreetMap hamlet node and Google Open Buildings footprint clustering",
+    "licence": "ODbL / CC-BY-4.0",
+    "is_official": false,
+    "is_provisional": true
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Arasur",
+        "boundary_status": "PROVISIONAL"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.108,
+              11.072
+            ],
+            [
+              77.126,
+              11.07
+            ],
+            [
+              77.138,
+              11.075
+            ],
+            [
+              77.142,
+              11.088
+            ],
+            [
+              77.139,
+              11.098
+            ],
+            [
+              77.128,
+              11.103
+            ],
+            [
+              77.112,
+              11.101
+            ],
+            [
+              77.106,
+              11.092
+            ],
+            [
+              77.1055,
+              11.081
+            ],
+            [
+              77.108,
+              11.072
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

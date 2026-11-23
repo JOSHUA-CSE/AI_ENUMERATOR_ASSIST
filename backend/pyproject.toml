@@ -1,0 +1,57 @@
+[project]
+name = "ai-enumerator-backend"
+version = "0.1.0"
+description = "FastAPI backend for AI-Enumerator Assistant"
+authors = [
+    {name = "Antigravity", email = "antigravity@gemini.agent"}
+]
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "sqlalchemy>=2.0.28",
+    "psycopg[binary]>=3.1.18",
+    "alembic>=1.13.1",
+    "pydantic>=2.6.4",
+    "pydantic-settings>=2.2.1",
+    "geoalchemy2>=0.14.7",
+    "shapely>=2.0.3",
+    "geopandas>=0.14.3",
+    "networkx>=3.2.1",
+    "scikit-learn>=1.4.1.post1",
+    "pyjwt (>=2.13.0,<3.0.0)",
+    "bcrypt (>=5.0.0,<6.0.0)"
+]
+requires-python = ">=3.13"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.1.1",
+    "pytest-asyncio>=0.23.5",
+    "httpx>=0.27.0",
+    "ruff>=0.3.3",
+    "mypy>=1.9.0"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "C4", "ARG", "PT"]
+ignore = ["N818", "B008", "E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

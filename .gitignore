@@ -1,0 +1,86 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Databases
+*.db
+*.db-*
+*.db.bak
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.env
+*.pem
+*.key
+*.p12
+*.keystore
+
+# Mobile / React Native / Android / iOS
+mobile/node_modules/
+mobile/.expo/
+mobile/android/local.properties
+mobile/android/.gradle/
+mobile/android/.cxx/
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/app/debug/
+mobile/android/app/release/
+mobile/ios/Pods/
+mobile/ios/build/
+mobile/coverage/
+mobile/.metro-health-check*
+mobile/yarn-error.log
+mobile/npm-debug.log
+
+# JavaScript dependencies and caches
+node_modules/
+.npm/
+.yarn/
+.pnpm-store/
+.parcel-cache/
+.cache/
+.expo/
+coverage/
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and generated or backup files
+*.log
+logs/
+*.bak
+*.tmp
+*.orig
+backend/scratch/
+
+# Local executable binaries
+*.exe
+*.dll
+mobile/android/app/debug.keystore

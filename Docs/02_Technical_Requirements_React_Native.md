@@ -54,26 +54,138 @@ The application is intended to support field staff and should not replace human 
 
 ## 2.1 Mobile Application
 
-### Flutter
+### React Native with Expo + TypeScript
 
-Use:
+The mobile application is built with **React Native with Expo (Expo React Native)** and **TypeScript**.
 
-* Flutter
-* Dart
-* Android as the first target platform
-* SQLite for local/offline storage
+Recommended mobile architecture:
 
-Flutter is recommended because the project requires:
+```text
+React Native with Expo
+    │
+    ├── React Navigation (Role-based Navigation)
+    │     ├── Role Resolver
+    │     ├── Deputy Navigator
+    │     ├── Supervisor Navigator
+    │     └── Enumerator Navigator
+    │
+    ├── Feature Modules (Authentication, Deputy, Supervisor, Enumerator)
+    │
+    ├── Zustand (Client State Management)
+    │
+    ├── API Client (Fetch / Axios with JWT interceptor)
+    │
+    ├── expo-sqlite (Offline Local Database & Sync Queue)
+    │
+    ├── expo-secure-store (Encrypted Token & Session Storage)
+    │
+    ├── expo-location (GPS, Accuracy & Boundary Checking)
+    │
+    ├── react-native-maps (Primary MVP Map Rendering)
+    │
+    └── Testing (Jest + React Native Testing Library)
+```
 
-* Map-based screens
-* GPS access
-* Offline data
-* Local database
-* Background location handling
-* Voice input
-* Multiple role-based interfaces
+### Core Libraries & Their Roles
 
-The first release should prioritize Android.
+1. **Expo (`expo`)**:
+   - Acts as the primary mobile application framework and runtime.
+   - Provides standardized SDK modules, unified configuration (`app.json`), fast development server (`npx expo start`), and modern asset pipeline.
+
+2. **React Navigation (`@react-navigation/native`, `@react-navigation/native-stack`, `@react-navigation/bottom-tabs`)**:
+   - Responsible for role-based navigation and screen routing.
+   - Architecture:
+     ```text
+     Authenticated User
+             ↓
+        Role Resolver
+             ↓
+     ┌─────────────────┬────────────────────┬─────────────────────┐
+     │ DeputyNavigator │ SupervisorNavigator │ EnumeratorNavigator │
+     └─────────────────┴────────────────────┴─────────────────────┘
+     ```
+   - React Navigation manages UI flow; backend FastAPI remains the authoritative security boundary.
+
+3. **Zustand (`zustand`)**:
+   - Lightweight, hook-based state management.
+   - Manages active user session, assigned HLB state, UI filters, network state, and sync progress without boilerplate.
+
+4. **`expo-sqlite`**:
+   - Embedded local SQL database providing offline-first persistence.
+   - Stores downloaded HLB boundaries, houses, buildings, questionnaire records, revisits, and queued synchronization operations.
+   - Offline flow: `React Native UI -> Repository -> expo-sqlite -> Local Data -> Sync Queue -> FastAPI`.
+
+5. **`expo-secure-store`**:
+   - Encrypted, hardware-backed key-value storage (Android Keystore / iOS Keychain).
+   - Used strictly for authentication JWTs, refresh tokens, and session credentials.
+   - **Rule:** Plain `AsyncStorage` MUST NOT be used for sensitive authentication tokens.
+
+6. **`expo-location`**:
+   - Native location API managing GPS services.
+   - Supports:
+     * Current device location retrieval
+     * Foreground & background location permissions
+     * GPS accuracy thresholds
+     * Point-in-polygon HLB boundary checks
+     * GPS tracking breadcrumbs
+     * Offline GPS logging for supervisor audit
+
+7. **`react-native-maps`**:
+   - Primary MVP map rendering library.
+   - Renders OpenStreetMap / Google Maps base tiles, HLB boundary polygons, house/building markers, Enumerator current position, and route visualization.
+   - **Important:** The FastAPI backend (GeoPandas + Shapely) remains responsible for heavy GIS computations (clipping, spatial clustering, AI block generation). The mobile application renders boundaries and performs lightweight point-in-polygon checks without heavy client GIS processing.
+   - *(Note: MapLibre remains documented as an optional alternative for advanced custom offline vector tile rendering if future requirements exceed `react-native-maps`).*
+
+8. **Jest & React Native Testing Library (`@testing-library/react-native`)**:
+   - Standard unit and component test suite covering authentication, RBAC navigation, form validation, offline store transactions, and sync queue logic.
+
+---
+
+### Expo Go vs Expo Development Build
+
+The project embraces a two-tier Expo development strategy:
+
+```text
+┌───────────────────────────────────────────────────────────────┐
+│                           Expo Go                             │
+│  - Instant preview via QR code                                │
+│  - No native compilation on developer PC                      │
+│  - Works for Login, RBAC, Forms, expo-sqlite,                 │
+│    expo-secure-store, expo-location                           │
+└───────────────────────────────┬───────────────────────────────┘
+                                │
+                                ▼ (when native customization needed)
+┌───────────────────────────────────────────────────────────────┐
+│                 Expo Development Build                        │
+│  - Built via `npx expo run:android` / `eas build`             │
+│  - Embeds custom native modules / native map configs          │
+│  - Retains full Expo tooling, Fast Refresh, & JS workflow     │
+└───────────────────────────────────────────────────────────────┘
+```
+
+1. **Expo Go (Fastest Mobile Preview)**:
+   - Prioritized for getting the login and role-based dashboard screens running on a physical Android device immediately.
+   - Developers install the **Expo Go** app from Google Play Store, start `npx expo start`, scan the QR code, and preview the app over Wi-Fi.
+   - **Supported in Expo Go:** Phase 1 Authentication, RBAC navigation, `expo-secure-store`, `expo-sqlite`, `expo-location`, forms, session management.
+
+2. **Expo Development Build (`expo-dev-client`)**:
+   - Used when a package or feature requires custom native Android configuration (such as custom native map keys or custom native background services) unavailable in standard Expo Go.
+   - **Crucial Rule:** If native customization is required, create an Expo Development Build. **Do NOT abandon Expo** or revert to unmanaged workflows.
+
+### Android-first requirements
+
+The Expo React Native application must support:
+
+* Android GPS/location permissions via `expo-location`
+* Background/foreground location behavior as permitted by Android
+* Offline operation with `expo-sqlite`
+* Secure local credential storage via `expo-secure-store`
+* Map rendering via `react-native-maps`
+* Camera and microphone access where required
+* Network state detection
+* Large touch targets and low-end Android performance
+
+The mobile application must not contain backend database credentials or trusted server secrets.
 
 ---
 
@@ -124,41 +236,64 @@ PostGIS is important because the application needs to manage:
 
 ---
 
-## 2.4 AI/GIS
+## 2.4 AI/GIS & Building Detection Architecture
 
 Recommended Python technologies:
 
-* GeoPandas
-* Shapely
-* NetworkX
-* scikit-learn where machine learning is actually required
+* GeoPandas & Shapely (Geometry manipulation, boundary clipping, spatial validation)
+* NetworkX (Graph-based routing optimization)
+* scikit-learn (Spatial clustering & density analysis where required)
 
-The first version of block generation should not depend on a complex deep-learning model.
+### Geographic Pipeline: Satellite-Assisted Building Estimation
 
-A GIS + optimization approach can be used to generate practical blocks.
+The system implements a server-side geographic pipeline:
 
-Machine learning can be introduced later if there is a suitable dataset and a clear benefit.
+```text
+Satellite Imagery (Esri World Imagery / Configurable Provider)
+        ↓
+Building Detection Service (Spatial Extractor / Pre-trained / Footprint Provider)
+        ↓
+Building Footprints / Centroids (GeoJSON / WKB, SRID 4326)
+        ↓
+PostGIS (Spatial storage & boundary-filtered indexing)
+        ↓
+FastAPI (REST APIs with caching & spatial aggregation)
+        ↓
+React Native Map (Zoom-dependent visualization)
+```
+
+### Key Technical Principles:
+1. **Server-Side Processing**: Heavy image processing, raster tiling, building footprint extraction, and machine learning inference are performed **exclusively on the backend/GIS layer**. The mobile Android client strictly visualizes the processed results (boundaries, heatmaps, cluster counts, markers) without running heavy on-device ML models.
+2. **Imagery Source Abstraction**: The system must not hard-code a single commercial satellite provider. The imagery layer is abstracted through a configurable provider interface supporting Esri World Imagery, OpenStreetMap, Mapbox, or standardized XYZ/WMS tile endpoints.
+3. **Imagery & Detection Metadata**: Each detected structure record preserves:
+   - `source_type`: `SATELLITE_DETECTED`, `MANUAL`, `GOVERNMENT_IMPORT`, `FIELD_VERIFIED`
+   - `detection_confidence`: Confidence score (0.0 to 1.0) where available from the detection model
+   - `detected_at`: Timestamp of detection execution
+   - `imagery_source`: Identifier of imagery provider/satellite sensor
+   - `imagery_date`: Capture date or acquisition year of the underlying imagery
+4. **Spatial Boundary Filtering**: All building detection and estimation queries must be strictly filtered by the selected village/ward administrative boundary polygon in PostGIS (`ST_Contains` / `ST_Intersects`).
 
 ---
 
-## 2.5 Maps
+## 2.5 Maps & Mobile Visualization
 
 Recommended:
 
-* OpenStreetMap-based map data
-* MapLibre or another suitable Flutter map SDK
-* PostGIS for spatial processing
+* Leaflet / react-native-maps for interactive mobile map rendering
+* High-resolution satellite tile base layer (default) with toggle to street map
+* PostGIS for server-side spatial indexing (`GIST`) and aggregation
 
 The map system should support:
 
-* Administrative boundaries
-* Layout boundaries
-* Block boundaries
-* House/building markers
-* Enumerator location
-* GPS track
-* Route
-* Boundary warnings
+* Administrative boundaries (high-contrast polygons with semi-transparent fills)
+* **Zoom-Dependent Visualization**:
+  - **Far Zoom (< 14)**: Village boundary polygon only + centered name badge (no marker clutter)
+  - **Medium Zoom (14–16)**: Multi-tier building density heatmap (Green $\rightarrow$ Yellow $\rightarrow$ Orange $\rightarrow$ Red)
+  - **Closer Zoom (16–18)**: Clustered building markers with counts (tap to zoom into cluster)
+  - **High Zoom (> 18)**: Individual detected building footprint markers + detail popups (ID, Building Ref, Coordinates)
+* Top layer controls (`Boundary`, `Buildings`, `Layers`)
+* Floating map tools (Location, Zoom In/Out, Fit Boundary)
+* Bottom information card with estimated building count, area ($km^2$), and status
 
 ---
 
@@ -167,41 +302,43 @@ The map system should support:
 The overall architecture should be:
 
 ```text
-                    Flutter Mobile App
-                           |
-                    HTTPS / REST API
-                           |
-                        FastAPI
-                           |
-          +----------------+----------------+
-          |                |                |
-     PostgreSQL         GIS Engine      Auth Service
-       + PostGIS             |
-          |             AI Block Engine
-          |                |
-          |        +-------+-------+
-          |        |       |       |
-          |      Houses  Roads  Boundaries
-          |
-          +-------------------------------+
+               React Native with Expo Mobile App
+                               |
+                        HTTPS / REST API
+                               |
+                            FastAPI
+                               |
+              +----------------+----------------+
+              |                |                |
+         PostgreSQL         GIS Engine      Auth Service
+           + PostGIS             |
+              |             AI Block Engine
+              |                |
+              |        +-------+-------+
+              |        |       |       |
+              |      Houses  Roads  Boundaries
+              |
+              +-------------------------------+
 ```
 
 The Enumerator mobile application also contains a local offline layer:
 
 ```text
-                 Flutter
-                    |
-              SQLite Database
-                    |
-             Offline Field Work
-                    |
-              Local Sync Queue
-                    |
-             Internet Available
-                    |
-                 FastAPI
-                    |
-               PostgreSQL
+             React Native with Expo
+                        |
+                 Local Repository
+                        |
+                   expo-sqlite
+                        |
+                Offline Field Work
+                        |
+                 Local Sync Queue
+                        |
+                Internet Available
+                        |
+                     FastAPI
+                        |
+                   PostgreSQL
 ```
 
 ---
@@ -868,7 +1005,23 @@ The Enumerator should not need continuous internet access to:
 
 # 15. Local Database
 
-SQLite should be used for offline storage.
+`expo-sqlite` must be used for local offline storage.
+
+The offline architecture is structured as:
+
+```text
+React Native UI
+      ↓
+Repository
+      ↓
+expo-sqlite
+      ↓
+Local Data
+      ↓
+Sync Queue
+      ↓
+FastAPI
+```
 
 Important local entities:
 
@@ -1097,7 +1250,7 @@ Requirements:
 
 Most importantly:
 
-**Role permissions must be enforced by the backend, not only by the Flutter UI.**
+**Role permissions must be enforced by the backend, not only by the React Native UI.**
 
 For example, hiding a Deputy Tahsildar screen from an Enumerator is not sufficient. The API must also reject unauthorized requests.
 
@@ -1412,11 +1565,11 @@ Your data is saved locally and will be retried.
 ## Initial Development
 
 ```text
-Flutter
+React Native with Expo + TypeScript
 FastAPI
 PostgreSQL
 PostGIS
-SQLite
+expo-sqlite
 Local development environment
 ```
 
@@ -1442,32 +1595,39 @@ The project should be divided into the following modules:
 ```text
 mobile/
 │
-├── authentication/
-├── deputy/
-│   ├── areas/
-│   ├── layouts/
-│   ├── blocks/
-│   └── assignments/
-│
-├── supervisor/
-│   ├── layouts/
-│   ├── blocks/
-│   ├── enumerators/
-│   └── monitoring/
-│
-├── enumerator/
-│   ├── dashboard/
-│   ├── map/
-│   ├── houses/
-│   ├── route/
-│   ├── household/
-│   ├── voice/
-│   ├── revisit/
-│   └── sync/
-│
-├── gps/
-├── offline/
-└── common/
+├── src/
+│   ├── app/
+│   ├── navigation/
+│   ├── core/
+│   ├── components/
+│   ├── features/
+│   │   ├── authentication/
+│   │   ├── deputy/
+│   │   │   ├── areas/
+│   │   │   ├── layouts/
+│   │   │   ├── blocks/
+│   │   │   └── assignments/
+│   │   ├── supervisor/
+│   │   │   ├── layouts/
+│   │   │   ├── blocks/
+│   │   │   ├── enumerators/
+│   │   │   └── monitoring/
+│   │   ├── enumerator/
+│   │   │   ├── dashboard/
+│   │   │   ├── map/
+│   │   │   ├── houses/
+│   │   │   ├── route/
+│   │   │   ├── household/
+│   │   │   ├── voice/
+│   │   │   ├── revisit/
+│   │   │   └── sync/
+│   │   ├── gps/
+│   │   ├── offline/
+│   │   └── settings/
+│   └── main.tsx
+├── app.json
+├── package.json
+└── __tests__/
 
 backend/
 │
@@ -1490,7 +1650,167 @@ backend/
 
 ---
 
-# 33. Technical Core Rules
+
+# 33. React Native with Expo Implementation Rules
+
+The mobile implementation must follow these rules.
+
+## 33.1 TypeScript
+
+All application code should use TypeScript.
+
+Avoid untyped JavaScript for core business logic.
+
+Use:
+
+* Typed API models
+* Typed navigation parameters
+* Typed local database models (`expo-sqlite`)
+* Typed sync operations
+* Typed component props
+* Shared enums/constants for domain statuses
+
+---
+
+## 33.2 Feature-Based Architecture
+
+Organize React Native with Expo code by feature rather than placing all screens, hooks, and services in large global folders.
+
+Example:
+
+```text
+src/features/enumerator/
+├── screens/
+├── components/
+├── hooks/
+├── services/
+├── store/
+├── models/
+└── index.ts
+```
+
+Shared functionality belongs under `src/core` or `src/components`.
+
+---
+
+## 33.3 Navigation
+
+Navigation must be role-aware and powered by **React Navigation**.
+
+```text
+Authenticated User
+        ↓
+Role Resolver
+        ↓
+┌──────────────┬──────────────┬──────────────┐
+│ Deputy       │ Supervisor   │ Enumerator   │
+│ Navigator    │ Navigator    │ Navigator    │
+└──────────────┴──────────────┴──────────────┘
+```
+
+The mobile navigator must not be treated as the security boundary. Backend authorization remains authoritative.
+
+---
+
+## 33.4 Offline-First State
+
+The Enumerator experience should follow:
+
+```text
+React Native UI
+      ↓
+Repository
+      ↓
+expo-sqlite
+      ↓
+Local Data
+      ↓
+Sync Queue
+      ↓
+FastAPI
+```
+
+Do not make every field entry depend directly on an API request.
+
+A successful local save in `expo-sqlite` should allow the Enumerator to continue working even when connectivity is unavailable.
+
+---
+
+## 33.5 React Native Performance
+
+The application should:
+
+* Use virtualized lists for large house datasets.
+* Avoid unnecessary re-renders.
+* Keep map markers efficient.
+* Batch GPS records via `expo-location`.
+* Paginate large server responses.
+* Avoid loading an entire village into React state when only one HLB is required.
+* Keep heavy GIS processing on the backend.
+* Keep offline database operations transactional with `expo-sqlite`.
+* Avoid blocking the JS thread with expensive processing.
+
+---
+
+## 33.6 Native Capabilities & Expo Modules
+
+Use Expo SDK modules and native libraries only where required.
+
+Examples:
+
+```text
+expo-location (GPS / Location tracking)
+expo-secure-store (Session & Token storage)
+expo-sqlite (Offline local database)
+react-native-maps (Map rendering)
+expo-camera / expo-av (Camera / Audio where required)
+NetInfo (Network State)
+```
+
+Native capabilities must be wrapped behind small application services in `src/core` so the rest of the codebase does not depend directly on platform-specific APIs.
+
+---
+
+## 33.7 Environment Configuration
+
+Use separate configuration for:
+
+```text
+development
+testing
+production
+```
+
+Do not hard-code:
+
+* API URLs
+* Secret keys
+* Database credentials
+* Authentication secrets
+* Private map service credentials
+
+Only public/client-safe configuration may be bundled into the mobile application.
+
+---
+
+## 33.8 Testing
+
+React Native tests (using Jest and React Native Testing Library) should cover:
+
+* Login and role routing
+* Enumerator HLB access restrictions
+* Form validation
+* Offline saves with `expo-sqlite`
+* Sync queue behavior
+* GPS status UI
+* Boundary warning UI
+* Revisit creation
+* Navigation
+* Error states
+
+Critical business rules should also be tested independently of the UI.
+
+# 34. Technical Core Rules
 
 The AI coding system must always follow these rules.
 
@@ -1570,7 +1890,7 @@ Backend Must Enforce All Role Permissions
 
 ---
 
-# 34. Technical Success Criteria
+# 35. Technical Success Criteria
 
 The technical implementation can be considered successful when the following complete workflow works:
 

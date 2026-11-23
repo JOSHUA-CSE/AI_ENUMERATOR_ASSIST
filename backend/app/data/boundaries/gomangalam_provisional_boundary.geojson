@@ -1,0 +1,55 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Gomangalam (Provisional Boundary)",
+    "official_name": "Gomangalam",
+    "tamil_name": "\u0b95\u0bcb\u0bae\u0b99\u0bcd\u0b95\u0bb2\u0bae\u0bcd",
+    "census_code": "644554",
+    "lgd_code": "644554",
+    "firka": "Pollachi South",
+    "taluk": "Pollachi",
+    "district": "Coimbatore",
+    "boundary_status": "PROVISIONAL",
+    "source": "Provisional territorial delineation based on Census 2011 revenue village coordinates and Voronoi settlement partitioning within Pollachi Taluk",
+    "licence": "ODbL 1.0 / CC-BY-4.0",
+    "is_official": false,
+    "is_provisional": true,
+    "verification_date": "2026-11-12",
+    "source_url": "https://coimbatore.nic.in/revenue-administration/"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gomangalam",
+        "boundary_status": "PROVISIONAL",
+        "census_code": "644554"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                77.083,
+                10.637999999999986
+              ],
+              [
+                77.083,
+                10.597
+              ],
+              [
+                77.04199999999999,
+                10.597
+              ],
+              [
+                77.083,
+                10.637999999999986
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

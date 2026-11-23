@@ -35,6 +35,20 @@ ENUMERATOR
 
 The user must only receive screens and operations permitted for their role.
 
+The mobile navigation architecture is managed using **React Navigation** via role-based navigators to partition the user experience:
+
+```text
+Authenticated User
+        ↓
+  Role Resolver
+        ↓
+┌───────────────────┬──────────────────────┬──────────────────────┐
+│ Deputy Navigator  │ Supervisor Navigator │ Enumerator Navigator │
+└───────────────────┴──────────────────────┴──────────────────────┘
+```
+
+The mobile navigator acts as a user interface guide and is not a security boundary. Backend authorization remains the authoritative security boundary.
+
 ---
 
 # 2. Overall Application Flow
@@ -46,11 +60,21 @@ The complete fieldwork flow is:
                            ↓
                   Select Village/Ward
                            ↓
+             Open Administrative Area Map
+                           ↓
+              Satellite Imagery View
+                           ↓
+             View Administrative Boundary
+                           ↓
+              Run/Load Building Detection
+                           ↓
+             View Estimated Building Count
+                           ↓
+              Inspect Density / Clusters
+                           ↓
                     Create Layout
                            ↓
-                 View Houses/Buildings
-                           ↓
-                 Generate Blocks using AI
+                AI/GIS Block Generation
                            ↓
              Target ≈ 250 Houses/Buildings
                            ↓
@@ -115,19 +139,25 @@ Deputy Tahsildar Dashboard
   ↓
 Select Village / Ward
   ↓
+Open Administrative Area Map
+  ↓
+Satellite Imagery View
+  ↓
 View Administrative Boundary
   ↓
-View Houses / Buildings
+Run / Load Building Detection & Estimation
+  ↓
+View Estimated Building Count
+  ↓
+Inspect Density Heatmap & Cluster Markers
   ↓
 Create Layout
   ↓
-Set Target Block Size
-  ↓
-Default Target ≈ 250
+Set Target Block Size (Default ≈ 250)
   ↓
 Generate Blocks
   ↓
-AI/GIS Processing
+AI/GIS Processing (GeoPandas + Shapely)
   ↓
 View Proposed Blocks
   ↓
@@ -147,6 +177,37 @@ Assign Layout to Supervisor
   ↓
 Monitor Overall Progress
 ```
+
+## 3.2 Administrative Area Map UX & Zoom-Dependent Visualization
+
+The administrative-area map prioritizes clarity and avoids showing hundreds of unclustered markers by default:
+
+```text
+Zoom Level < 14 (Far Zoom):
+Village/Ward boundary only + Centered area title badge (Zero marker clutter)
+        ↓
+Zoom Level 14–16 (Medium Zoom):
+Building density heatmap (Green → Yellow → Orange → Red gradient)
+        ↓
+Zoom Level 16–18 (Closer Zoom):
+Dynamic cluster badges with count numbers (12, 28, 42...)
+Tap cluster to zoom in
+        ↓
+Zoom Level > 18 (High Zoom):
+Individual detected building footprint markers (🏠) + Popup card
+(House ID: H-638401-xxx, Building reference, GPS coordinates)
+```
+
+Top Controls:
+* `[ Boundary ]`: Toggle boundary polygon visibility
+* `[ Buildings ]`: Toggle building density, clusters, and individual markers
+* `[ Layers ]`: Toggle between Satellite base layer and Street Map
+
+Bottom Information Card:
+* Area Name & Code (e.g. `Arasur Village (VILL-638401)`)
+* Total Estimated Buildings (e.g. `🏠 250`)
+* Area Size (e.g. `🗺️ 2.46 km²`)
+* Status badge (`[Active]`)
 
 ---
 
@@ -903,7 +964,7 @@ Download Block Boundary
       ↓
 Download Existing Records
       ↓
-Store in SQLite
+Store in expo-sqlite
       ↓
 Internet Lost
       ↓
@@ -1442,7 +1503,7 @@ Enumerator Fieldwork → Offline Supported
 ### Rule 12
 
 ```text
-Offline Changes → SQLite → Sync Queue → Backend
+Offline Changes → expo-sqlite → Sync Queue → Backend
 ```
 
 ### Rule 13

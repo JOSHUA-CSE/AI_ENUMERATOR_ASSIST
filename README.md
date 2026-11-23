@@ -10,7 +10,7 @@ The application is designed around three roles:
 * **Supervisor**
 * **Enumerator**
 
-The main idea is to combine a simple census-style field application with GIS, offline support, GPS, route optimization, and AI-assisted features.
+The main idea is to combine a simple census-style field application with GIS, satellite-assisted building estimation, offline support, GPS, route optimization, and AI-assisted planning.
 
 ---
 
@@ -21,7 +21,13 @@ The basic workflow of the application is:
 ```text
 Village / Ward
       ↓
-    Layout
+Satellite Imagery + Boundary
+      ↓
+Building Detection / Estimation
+      ↓
+Estimated Building Count
+      ↓
+Layout Planning
       ↓
 Houselisting Blocks (HLBs)
       ↓
@@ -31,14 +37,16 @@ Houselisting Blocks (HLBs)
       ↓
 One Enumerator per HLB
       ↓
-Household Fieldwork
+Household Fieldwork & Verification
       ↓
 Offline Sync
       ↓
 Supervisor Monitoring
 ```
 
-A Deputy Tahsildar selects a village or ward and creates a layout for it. The layout is divided into Houselisting Blocks (HLBs), with approximately 250 houses/buildings per HLB by default.
+A Deputy Tahsildar selects a village or ward, loads the administrative boundary over satellite imagery, runs or loads satellite-assisted building detection to estimate visible buildings/structures, and uses the resulting building distribution for GIS layout planning. The layout is divided into Houselisting Blocks (HLBs), with approximately 250 houses/buildings per HLB by default.
+
+> **Important Distinction:** Satellite-derived building estimates serve as **geographic planning data** to assess building concentration and generate balanced HLBs. They are **not** official census household records. Actual household numbers, multi-household structures, and occupancy are determined during on-the-ground Enumerator fieldwork.
 
 After the layout is reviewed and approved, it is assigned to a Supervisor. The Supervisor assigns one Enumerator to each HLB.
 
@@ -51,7 +59,8 @@ The Enumerator then works within the assigned HLB, records household information
 The project aims to:
 
 * Reduce manual work in census field planning
-* Assist in creating Houselisting Blocks
+* Support satellite-imagery-assisted building estimation and spatial density analysis
+* Assist in creating balanced Houselisting Blocks
 * Make field assignments easier
 * Help Enumerators work with their assigned HLB
 * Support offline field data collection
@@ -68,13 +77,16 @@ The project aims to:
 
 ### Deputy Tahsildar
 
-The Deputy Tahsildar is responsible for planning and approving the field layout.
+The Deputy Tahsildar is responsible for spatial planning and approving the field layout.
 
 Main responsibilities:
 
 * Select Village/Ward
+* View administrative boundary on satellite imagery
+* Run/load building detection and estimation
+* Inspect building density heatmaps and cluster counts
+* View estimated building count
 * Create Layout
-* View houses/buildings
 * Generate HLBs
 * Review generated HLBs
 * Edit HLB boundaries
@@ -84,7 +96,7 @@ Main responsibilities:
 * Assign the Layout to a Supervisor
 * Monitor overall progress
 
-The AI can suggest HLBs, but the Deputy Tahsildar remains the final approver.
+The AI can suggest building estimates and HLBs, but the Deputy Tahsildar remains the final approver.
 
 ---
 
@@ -239,27 +251,33 @@ When connectivity returns, pending changes are synchronized with the server.
 
 ---
 
-### 5. GPS and Boundary Monitoring
+### 5. GPS and Boundary Monitoring [Phase 11]
 
-The application records Enumerator GPS movement.
-
-The system can compare the Enumerator's location with the assigned HLB boundary.
-
-Example:
+The application captures authentic device GPS observations to determine whether the Enumerator is inside or outside the assigned HLB boundary, while providing non-blocking operational guidance and coverage metrics.
 
 ```text
-✓ INSIDE ASSIGNED HLB
+Device GPS
+    ↓
+Validate coordinate + accuracy
+    ↓
+Point-in-HLB check (Ray-Casting) + Distance to Boundary
+    ↓
+Inside / Outside / Boundary Uncertain / Unknown
+    ↓
+Fieldwork UI indication & Leaflet Map Overlay
+
+Fieldwork Coverage:
+Assigned HLB Buildings → Fieldwork status (COMPLETED + LOCKED) → Coverage %
 ```
 
-or:
-
-```text
-⚠ OUTSIDE ASSIGNED HLB
-```
-
-Boundary events are recorded for Supervisor monitoring.
-
-GPS is treated as a field coverage indicator and not as proof that a household was interviewed.
+Key principles and implementation details:
+* **Authentic Device GPS Source**: Captured exclusively via device APIs (`expo-location`); coordinates and horizontal accuracy are never fabricated.
+* **Accuracy Tiers**: `GOOD` ($\le 25\text{ m}$), `POOR` ($> 25\text{ m}$), and `UNKNOWN` ($> 100\text{ m}$ or unavailable). UI displays `±X m`.
+* **Point-in-Polygon & Uncertainty Handling**: Ray-casting containment test combined with geodesic/metric distance $D$ to boundary segments. When $D \le R$ (where $R$ is GPS accuracy radius), status is classified as `BOUNDARY_UNCERTAIN` instead of making a false claim.
+* **Non-Blocking Outside Warning**: If an Enumerator is outside their assigned HLB, a clear warning banner (`⚠ Outside assigned HLB`) is displayed. The warning does not lock the application, delete data, or invalidate legitimate fieldwork recording.
+* **Fieldwork Coverage Indicators**: Progress percentage is strictly calculated from building fieldwork statuses (`(completed + locked) / total * 100`).
+* **Offline Storage & Phase 9 Synchronization**: Observations are persisted locally in SQLite (`offline_gps_logs`) and enqueued in `sync_queue` (`GPS_LOG`) for batch upload to `/api/v1/sync`.
+* **Important Rule**: **"GPS observations indicate field location but do not prove household enumeration completion."** Physical presence inside an HLB does not automatically complete any building or submit household data.
 
 ---
 
@@ -367,38 +385,31 @@ The application should feel like a practical government field application rather
 
 ### Enumerator UI
 
-The Enumerator's main operations are centered around:
-
-```text
-Assigned HLB
-     ↓
-Map
-     ↓
-House
-     ↓
-Household Form
-     ↓
-Save
-     ↓
-Next House
-```
+The Enumerator's main operations are centered around map-based navigation and structured form entry.
 
 ---
 
 ## Technology Stack
 
-### Mobile
+### Mobile (Android-First)
 
-* Flutter
-* Dart
-* Android-first
-* SQLite/local database
+* React Native with Expo (Expo React Native)
+* TypeScript
+* React Navigation (Role-based navigation)
+* expo-sqlite (Offline field records database)
+* Zustand (State management)
+* Axios / Fetch (REST API Client)
+* expo-secure-store (Credentials/session tokens)
+* expo-location (GPS tracking and boundary monitoring)
+* react-native-maps (Map rendering)
+* React Native Testing Library and Jest (UI/unit testing)
 
 ### Backend
 
 * Python
 * FastAPI
 * REST API
+* Poetry (Dependency management)
 
 ### Database
 
@@ -408,33 +419,39 @@ Next House
 ### GIS / AI
 
 * Python
-* GeoPandas
-* Shapely
-* NetworkX
-* scikit-learn where required
+* GeoPandas, Shapely (Spatial analysis & geometry validation)
+* Configurable satellite imagery source abstraction & tile services
+* Building detection / structure footprint estimation services
+* NetworkX (Graph routing optimization)
+* scikit-learn where clustering is required
 
 ### Maps
 
-* OpenStreetMap-based map data
-* MapLibre or another suitable Flutter map SDK
+* High-resolution Satellite Imagery (Esri World Imagery / configurable provider)
+* OpenStreetMap-based street tile overlay
+* Leaflet / react-native-maps for interactive mobile visualization
+* PostGIS for server-side spatial filtering & spatial indexing
 
 ---
 
 ## System Architecture
 
 ```text
-                    Flutter Mobile App
-                           │
-                           │ HTTPS / REST
-                           ↓
-                       FastAPI
-                           │
-             ┌─────────────┼─────────────┐
-             ↓             ↓             ↓
-        PostgreSQL      GIS Engine    Auth/RBAC
-        + PostGIS           │
+               React Native with Expo Mobile App
+                            │
+                            │ HTTPS / REST
                             ↓
-                      AI/GIS Services
+                         FastAPI
+                            │
+              ┌─────────────┼─────────────┐
+              ↓             ↓             ↓
+         PostgreSQL      GIS Engine    Auth/RBAC
+         + PostGIS           │
+                             ↓
+              ┌──────────────┴──────────────┐
+              ↓                             ↓
+     Satellite Imagery &          AI / Optimization
+     Building Detection Service     HLB Engine
 
 
 Enumerator Device
@@ -550,68 +567,177 @@ Local data should not be deleted simply because synchronization failed.
 
 ---
 
-## Development Approach
-
-The project is being developed in phases.
+## Repository Structure
 
 ```text
-1. Project Setup
-2. Authentication
-3. Role Dashboards
-4. Administrative Areas
-5. Maps
-6. Houses / Buildings
-7. Layout Creation
-8. HLB Generation
-9. HLB Review / Approval
-10. Supervisor Assignment
-11. Enumerator Assignment
-12. Offline Field Workflow
-13. Household Records
-14. Synchronization
-15. GPS Boundary Monitoring
-16. Supervisor Progress
-17. Route Optimization
-18. GPS Coverage
-19. Voice Assistant
-20. Testing
-21. Security
-22. Android Release
+AI_Enumerator/
+├── Docs/                              # Project documentation
+│   ├── 01_Project_Requirements.md
+│   ├── 02_Technical_Requirements_React_Native.md
+│   ├── 03_App_Flow.md
+│   ├── 04_UI_UX_Design.md
+│   ├── 05_Backend_Schema.md
+│   └── 06_Implementation_Plan.md
+├── backend/                           # FastAPI backend application
+│   ├── app/                           # Main application package
+│   │   ├── api/                       # API routers and endpoints
+│   │   ├── core/                      # Configuration, security, logging
+│   │   ├── models/                    # SQLAlchemy database models
+│   │   ├── schemas/                   # Pydantic validation schemas
+│   │   ├── services/                  # Business logic services
+│   │   ├── repositories/              # Database operations
+│   │   ├── gis/                       # Geographic services (GeoPandas, Shapely)
+│   │   ├── ai/                        # HLB generation engine
+│   │   └── sync/                      # Synchronization handlers
+│   ├── migrations/                    # Alembic database migrations
+│   ├── tests/                         # Backend test suite (pytest)
+│   ├── pyproject.toml                 # Poetry dependencies and tools configuration
+│   └── poetry.lock                    # Locked python dependencies
+└── mobile/                            # React Native with Expo mobile client (Android-first)
+    ├── src/                           # TypeScript source files
+    │   ├── app/                       # Application entry and global providers
+    │   ├── navigation/                # Role-based React Navigation configuration
+    │   ├── core/                      # Reusable services, constants, and database helpers
+    │   ├── components/                # Reusable UI components
+    │   └── features/                  # Feature-specific modules
+    │       ├── authentication/        # Login and session handling
+    │       ├── deputy/                # Deputy Tahsildar screens and layouts
+    │       ├── supervisor/            # Supervisor screens and assignment
+    │       ├── enumerator/            # Enumerator maps, household data entry
+    │       ├── maps/                  # react-native-maps modules
+    │       ├── households/            # Questionnaire forms and validation
+    │       ├── gps/                   # Location services and boundary checking (expo-location)
+    │       ├── offline/               # Local expo-sqlite database configurations
+    │       ├── sync/                  # Synchronization queue handlers
+    │       └── voice/                 # Offline voice assistant logic
+    ├── app.json                       # Expo configuration manifest
+    ├── package.json                   # NPM dependencies and scripts
+    ├── __tests__/                     # Unit and component tests (Jest, RNTL)
+    └── tsconfig.json                  # TypeScript compiler settings
 ```
-
-The core field workflow will be completed before adding advanced AI features.
 
 ---
 
-## Development Philosophy
+## Development Prerequisites
 
-This project is being built as a real software project rather than a UI prototype.
+Before running the application, make sure you have the following installed:
 
-The code should be:
+* **Node.js (LTS)** (for Expo Metro bundler)
+* **Java Development Kit (JDK 17)** (for Android builds)
+* **Android Studio & Android SDK** or **Expo Go** on Android physical device
+* **Python (>= 3.13)**
+* **Poetry** (Python dependency management)
+* **PostgreSQL (>= 15) with PostGIS extension**
 
-* Readable
-* Modular
-* Maintainable
-* Testable
-* Consistent
-* Properly structured
+---
 
-Generated code should follow normal human software development practices.
+## Installation Instructions
 
-Avoid:
+### 1. Repository Setup
+Clone the repository and navigate to the project directory:
+```bash
+git clone <repository-url>
+cd AI_Enumerator
+```
 
-* Huge files
-* Huge functions
-* Repeated code
-* Unnecessary abstractions
-* Hard-coded business rules
-* Fake implementations
-* Unused dependencies
-* Unused variables
-* Excessive comments
-* Unclear naming
+### 2. Mobile Setup
+Install the mobile npm dependencies:
+```bash
+cd mobile
+npm install
+```
 
-The project should be understandable to another developer without needing to know that AI was used during development.
+### 3. Backend Setup
+Install Python dependencies using Poetry:
+```bash
+cd backend
+poetry install --with dev
+```
+
+### 4. Database Setup
+Create a PostgreSQL database named `ai_enumerator` and enable the PostGIS extension:
+```sql
+CREATE DATABASE ai_enumerator;
+\c ai_enumerator;
+CREATE EXTENSION postgis;
+```
+
+Copy the example environment file and configure your database settings:
+```bash
+cp .env.example .env
+```
+
+Apply backend database migrations:
+```bash
+poetry run alembic upgrade head
+```
+
+### 5. Database Reset & Mock Data Seeding
+To erase all existing data and seed mock data covering all user roles (Deputy Tahsildar, Supervisor, Enumerator) and fieldwork workflows:
+```bash
+poetry run python -m app.seed
+```
+*Note: To seed without resetting existing tables, run `poetry run python -m app.seed --no-reset`.*
+
+#### Preconfigured Demo Accounts:
+* **Deputy Tahsildar**: `username: deputy` | `password: password123`
+* **Supervisor**: `username: supervisor` | `password: password123`
+* **Supervisor 2**: `username: supervisor2` | `password: password123`
+* **Enumerator 1**: `username: enumerator` | `password: password123` *(Assigned to Arasur HLB-001)*
+* **Enumerator 2**: `username: enumerator2` | `password: password123` *(Assigned to Arasur HLB-002)*
+* **Enumerator 3 & 4**: `username: enumerator3` / `enumerator4` | `password: password123` *(Available for assignment)*
+
+---
+
+## Running the Application
+
+### 1. Running the Backend
+Start the FastAPI development server:
+```bash
+cd backend
+poetry run uvicorn app.main:app --reload
+```
+The API documentation will be available at `http://localhost:8000/docs`.
+
+### 2. Running the Mobile Application
+Start the Expo development server:
+```bash
+cd mobile
+npx expo start
+```
+
+You can open the app by:
+- Scanning the QR code with **Expo Go** on an Android device.
+- Pressing `a` to open in an Android Emulator.
+- Pressing `w` or running `npm run web` to open the Web preview.
+
+---
+
+## Testing Instructions
+
+### Backend Tests
+Run the Python test suite using pytest:
+```bash
+cd backend
+poetry run pytest
+```
+
+### Mobile Tests
+Run mobile tests using Jest and React Native Testing Library:
+```bash
+cd mobile
+npm test
+```
+
+---
+
+## Development Workflow
+
+1. **Local Database Configuration**: Ensure that the database connection string in `backend/.env` is configured correctly.
+2. **Offline Mode Testing**: To test the offline-first capability, run the application, sign in as an Enumerator, download the assigned HLB block, and disconnect the internet connection. Completed/locked houses are recorded locally in `expo-sqlite` and synchronized later.
+3. **Linting and Formatting**:
+   - Backend: Run `poetry run ruff check .` and `poetry run ruff format .`.
+   - Mobile: Run `npm run lint`.
 
 ---
 
@@ -620,10 +746,10 @@ The project should be understandable to another developer without needing to kno
 The project includes a knowledge base for the AI coding agent.
 
 ```text
-knowledge-base/
+Docs/
 │
 ├── 01_Project_Requirements.md
-├── 02_Technical_Requirements.md
+├── 02_Technical_Requirements_React_Native.md
 ├── 03_App_Flow.md
 ├── 04_UI_UX_Design.md
 ├── 05_Backend_Schema.md
